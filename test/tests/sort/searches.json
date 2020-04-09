@@ -550,5 +550,25 @@
         }
       ]
     }
+  },
+  {
+    "comment": "sort by score, with identical scores",
+    "search": {
+      "from": 0,
+      "size": 10,
+      "query": {
+        "query":"rapster"
+      },
+      "sort": ["-_score", "_id"],
+      "search_after": ["0.272806", "f"]
+    },
+    "result": {
+      "total_hits": 4,
+      "hits": [
+        {
+          "id": "g"
+        }
+      ]
+    }
   }
 ]
