@@ -25,4 +25,4 @@ require (
 	golang.org/x/text v0.3.0
 )
 
-replace github.com/blevesearch/bleve v1.0.8 => github.com/tylerkovacs/bleve release
+replace github.com/blevesearch/bleve v1.0.8 => github.com/tylerkovacs/bleve v1.0.8
