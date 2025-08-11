@@ -25,6 +25,7 @@ import (
 	"github.com/blevesearch/bleve/v2/search/collector"
 	"github.com/blevesearch/bleve/v2/search/query"
 	index "github.com/blevesearch/bleve_index_api"
+	"github.com/pkg/errors"
 )
 
 type indexAliasImpl struct {
@@ -764,10 +765,25 @@ func preSearchDataSearch(ctx context.Context, req *SearchRequest, flags *preSear
 	// run search on each index in separate go routine
 	var waitGroup sync.WaitGroup
 	searchChildIndex := func(in Index, childReq *SearchRequest) {
+		defer waitGroup.Done()
 		rv := asyncSearchResult{Name: in.Name()}
+
+		// Recover from panics in search (divide by zero errors in zap/posting.go)
+		defer func() {
+			if p := recover(); p != nil {
+				panicError, ok := p.(error)
+				if ok {
+					rv.Err = panicError
+				} else {
+					rv.Err = errors.Errorf("%s", p)
+				}
+
+				asyncResults <- &rv
+			}
+		}()
+
 		rv.Result, rv.Err = in.SearchInContext(ctx, childReq)
 		asyncResults <- &rv
-		waitGroup.Done()
 	}
 	waitGroup.Add(len(indexes))
 	for _, in := range indexes {
@@ -930,10 +946,25 @@ func MultiSearch(ctx context.Context, req *SearchRequest, preSearchData map[stri
 	var waitGroup sync.WaitGroup
 
 	searchChildIndex := func(in Index, childReq *SearchRequest) {
+		defer waitGroup.Done()
 		rv := asyncSearchResult{Name: in.Name()}
+
+		// Recover from panics in search (divide by zero errors in zap/posting.go)
+		defer func() {
+			if p := recover(); p != nil {
+				panicError, ok := p.(error)
+				if ok {
+					rv.Err = panicError
+				} else {
+					rv.Err = errors.Errorf("%s", p)
+				}
+
+				asyncResults <- &rv
+			}
+		}()
+
 		rv.Result, rv.Err = in.SearchInContext(ctx, childReq)
 		asyncResults <- &rv
-		waitGroup.Done()
 	}
 
 	waitGroup.Add(len(indexes))

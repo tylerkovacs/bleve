@@ -117,6 +117,7 @@ func (fb *FacetsBuilder) UpdateVisitor(field string, term []byte) {
 }
 
 type TermFacet struct {
+	Label string `json:"label"`
 	Term  string `json:"term"`
 	Count int    `json:"count"`
 }
